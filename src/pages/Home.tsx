@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ChevronLeftIcon, ChevronRightIcon, TagIcon, FireIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import { ProductCard } from '@/components/ProductCard'
 import { DataInitializer } from '@/components/DataInitializer'
+import { DebugPanel } from '@/components/DebugPanel'
 import { Product, Category } from '@/types'
 import { apiService } from '@/services/api'
 
@@ -315,6 +316,9 @@ export function Home() {
         </div>
       </section>
 
+      {/* Debug Panel - 只在开发环境显示 */}
+      {import.meta.env.DEV && <DebugPanel />}
+      
       {/* Data Initializer - 只在开发环境显示 */}
       {import.meta.env.DEV && <DataInitializer />}
     </div>
