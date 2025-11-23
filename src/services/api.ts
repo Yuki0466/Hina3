@@ -1,33 +1,68 @@
 import { supabase } from './supabase'
 import { Product, Category, Profile, Order, CartItem, ApiResponse } from '@/types'
+import { mockProducts, mockCategories } from '@/data/mockData'
+
+// 检查是否有有效的 Supabase 配置
+const hasValidSupabaseConfig = () => {
+  return import.meta.env.VITE_SUPABASE_URL && 
+         import.meta.env.VITE_SUPABASE_ANON_KEY &&
+         !import.meta.env.VITE_SUPABASE_URL.includes('your-project') &&
+         !import.meta.env.VITE_SUPABASE_ANON_KEY.includes('your-supabase')
+}
 
 export const apiService = {
   // 商品相关
   async getProducts(categoryId?: number): Promise<Product[]> {
-    let query = supabase
-      .from('products')
-      .select('*, category:categories(*)')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-
-    if (categoryId) {
-      query = query.eq('category_id', categoryId)
+    // 如果没有有效的 Supabase 配置，返回模拟数据
+    if (!hasValidSupabaseConfig()) {
+      console.log('使用模拟数据 (未配置 Supabase)')
+      return categoryId 
+        ? mockProducts.filter(p => p.category_id === categoryId)
+        : mockProducts
     }
 
-    const { data, error } = await query
-    if (error) throw error
-    return data || []
+    try {
+      let query = supabase
+        .from('products')
+        .select('*, category:categories(*)')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (categoryId) {
+        query = query.eq('category_id', categoryId)
+      }
+
+      const { data, error } = await query
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('获取商品失败，使用模拟数据:', error)
+      return categoryId 
+        ? mockProducts.filter(p => p.category_id === categoryId)
+        : mockProducts
+    }
   },
 
   async getProductById(id: number): Promise<Product | null> {
-    const { data, error } = await supabase
-      .from('products')
-      .select('*, category:categories(*)')
-      .eq('id', id)
-      .single()
+    // 如果没有有效的 Supabase 配置，返回模拟数据
+    if (!hasValidSupabaseConfig()) {
+      console.log('使用模拟商品详情 (未配置 Supabase)')
+      return mockProducts.find(p => p.id === id) || null
+    }
 
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*, category:categories(*)')
+        .eq('id', id)
+        .single()
+
+      if (error) throw error
+      return data
+    } catch (error) {
+      console.error('获取商品详情失败，使用模拟数据:', error)
+      return mockProducts.find(p => p.id === id) || null
+    }
   },
 
   async searchProducts(keyword: string): Promise<Product[]> {
@@ -44,13 +79,24 @@ export const apiService = {
 
   // 分类相关
   async getCategories(): Promise<Category[]> {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*')
-      .order('name', { ascending: true })
+    // 如果没有有效的 Supabase 配置，返回模拟数据
+    if (!hasValidSupabaseConfig()) {
+      console.log('使用模拟分类数据 (未配置 Supabase)')
+      return mockCategories
+    }
 
-    if (error) throw error
-    return data || []
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('获取分类失败，使用模拟数据:', error)
+      return mockCategories
+    }
   },
 
   // 用户相关
@@ -77,19 +123,33 @@ export const apiService = {
     return data
   },
 
-  // 购物车相关
+  // 购物车相关 (离线模式暂时不支持，返回空数据)
   async getCartItems(userId: string): Promise<CartItem[]> {
-    const { data, error } = await supabase
-      .from('cart_items')
-      .select('*, product:products(*)')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
+    if (!hasValidSupabaseConfig()) {
+      console.log('购物车功能需要 Supabase 配置')
+      return []
+    }
 
-    if (error) throw error
-    return data || []
+    try {
+      const { data, error } = await supabase
+        .from('cart_items')
+        .select('*, product:products(*)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      return data || []
+    } catch (error) {
+      console.error('获取购物车失败:', error)
+      return []
+    }
   },
 
   async addToCart(userId: string, productId: number, quantity: number): Promise<CartItem> {
+    if (!hasValidSupabaseConfig()) {
+      throw new Error('购物车功能需要 Supabase 配置')
+    }
+
     const { data, error } = await supabase
       .from('cart_items')
       .upsert({
@@ -108,6 +168,10 @@ export const apiService = {
   },
 
   async updateCartItem(userId: string, cartItemId: number, quantity: number): Promise<CartItem> {
+    if (!hasValidSupabaseConfig()) {
+      throw new Error('购物车功能需要 Supabase 配置')
+    }
+
     const { data, error } = await supabase
       .from('cart_items')
       .update({ quantity })
@@ -121,6 +185,10 @@ export const apiService = {
   },
 
   async removeFromCart(userId: string, cartItemId: number): Promise<void> {
+    if (!hasValidSupabaseConfig()) {
+      throw new Error('购物车功能需要 Supabase 配置')
+    }
+
     const { error } = await supabase
       .from('cart_items')
       .delete()
@@ -131,6 +199,10 @@ export const apiService = {
   },
 
   async clearCart(userId: string): Promise<void> {
+    if (!hasValidSupabaseConfig()) {
+      throw new Error('购物车功能需要 Supabase 配置')
+    }
+
     const { error } = await supabase
       .from('cart_items')
       .delete()
