@@ -4,6 +4,7 @@ import { ChevronLeftIcon, ChevronRightIcon, TagIcon, FireIcon, ArrowPathIcon } f
 import { ProductCard } from '@/components/ProductCard'
 import { DataInitializer } from '@/components/DataInitializer'
 import { DebugPanel } from '@/components/DebugPanel'
+import { SimpleDebug } from '@/components/SimpleDebug'
 import { Product, Category } from '@/types'
 import { apiService } from '@/services/api'
 
@@ -316,6 +317,9 @@ export function Home() {
         </div>
       </section>
 
+      {/* Simple Debug - 只在开发环境显示 */}
+      {import.meta.env.DEV && <SimpleDebug />}
+      
       {/* Debug Panel - 只在开发环境显示 */}
       {import.meta.env.DEV && <DebugPanel />}
       
