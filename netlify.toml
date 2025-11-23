@@ -4,6 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_VERSION = "9"
 
 [[redirects]]
   from = "/*"
@@ -14,4 +15,7 @@
   command = "npm run build"
 
 [context.deploy-preview]
+  command = "npm run build"
+
+[context.branch-deploy]
   command = "npm run build"

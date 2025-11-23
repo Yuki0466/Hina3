@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { StarIcon, HeartIcon } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { Product } from '@/types'
+import { useAuth } from '@/hooks/useAuth'
 import { useCart } from '@/hooks/useCart'
 
 interface ProductCardProps {
@@ -9,11 +10,16 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart, isInCart } = useCart(undefined) // We'll get userId from auth context
+  const { user } = useAuth()
+  const { addToCart, isInCart } = useCart(user?.id)
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
+    if (!user) {
+      window.location.href = '/auth'
+      return
+    }
     try {
       await addToCart(product.id, 1)
     } catch (error) {
